@@ -1,7 +1,7 @@
 from src.data_processing import load_data, saveData
-from src.modeling import train_model, evaluate_model
-from sklearn.model_selection import train_test_split
-import pandas as pd
+# from src.modeling import train_model, evaluate_model
+# from sklearn.model_selection import train_test_split
+# import pandas as pd
 
 train_path = "C:/Users/livmo/OneDrive - Trinity College Dublin/LoanPrediction/LoanPrediction/data/train.csv"
 test_path = "C:/Users/livmo/OneDrive - Trinity College Dublin/LoanPrediction/LoanPrediction/data/test.csv"

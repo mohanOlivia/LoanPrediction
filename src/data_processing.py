@@ -9,7 +9,17 @@ def fill_missing_values(df):
 
     # Categorical    
     for col in ["Gender", "Married", "Self_Employed"]:
-        df[col] = df[col].fillna(df[col].mode()[0], inplace=True)
+        if col in df.columns:
+            mode_val = df[col].mode()
+            df[col] = df[col].fillna(mode_val.iloc[0])
+            # Also replace None with mode
+            df[col] = df[col].replace({None: mode_val.iloc[0]})
+        else:
+            # If no mode exists, use a sensible default
+            if col == 'Gender':
+                df[col] = df[col].fillna('Male')
+            elif col in ['Married', 'Self_Employed', 'Loan_Status']:
+                df[col] = df[col].fillna('No')
 
 
     # Numerical 
@@ -23,8 +33,8 @@ def fill_missing_values(df):
 
     return df
 
-def encode_categorical_variables(df):
-    return pd.get_dummies(df, columns=['Gender', 'Married', 'Education', 'Self_Employed', 'Property_Area'], drop_first=True)
+# def encode_categorical_variables(df):
+#    return pd.get_dummies(df, columns=['Gender', 'Married', 'Education', 'Self_Employed', 'Property_Area'])
 
 def saveData(df, name):
     df = mend_columns(df)
@@ -33,25 +43,28 @@ def saveData(df, name):
 
 def mend_columns(df):
 
-    columns_drop = ['Loan_ID', 'Education_Not Graduate',  'Property_Area_Semiurban', 'Property_Area_Urban']
+    columns_drop = ['Loan_ID']
     
     df = fill_missing_values(df)
-    df = encode_categorical_variables(df)
-
-    # 3. Combine Property_Area columns if needed
-    if 'Property_Area' not in df.columns:
-        if 'Property_Area_Urban' in df.columns:
-            df['Property_Area'] = df['Property_Area_Urban'].fillna(0)
     
     df = df.drop(columns = [col for col in columns_drop if col in df.columns])
 
 
-    # 4. Encode categorical variables-
-    # Binary mappings
-    binary_map = {'Yes': 1, 'No': 0, 'Male': 1, 'Female': 0, 'Y': 1, 'N' : 0 }
-    for col in ['Married', 'Self_Employed', 'Gender', 'Loan_Status']:
+    binary_cols = ['Married', 'Self_Employed', 'Gender', 'Loan_Status']
+    
+    # 4. Encode categorical variables
+    # Expanded binary mappings to handle case variations
+    binary_map = {
+        'Yes': 1, 'No': 0, 'Male': 1, 'Female': 0, 'Y': 1, 'N': 0,
+        'yes': 1, 'no': 0, 'male': 1, 'female': 0, 'y': 1, 'n': 0
+    }
+    
+    for col in binary_cols:
         if col in df.columns:
             df[col] = df[col].map(binary_map)
+            # Check what happened after mapping
+            print(f"After mapping - {col}: {df[col].unique()}")
+            print(f"NaN count in {col}: {df[col].isna().sum()}")
     
     # Dependents: convert '3+' to 3 and fill missing with 0
     if 'Dependents' in df.columns:
